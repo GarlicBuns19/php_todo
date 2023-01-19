@@ -1,77 +1,78 @@
 <?php
+
+// Connection
+include './config/dataBase.php';
+
+$sql = "SELECT * FROM todo_list";
+$result = mysqli_query($conn, $sql);
+
+// fetch result rows as an arr
+$todos = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+// free result from memory
+mysqli_free_result($result);
+
 $title = 'Todo List';
+
 $name = '';
-// $todos = [
-//     ['id' => 1, 'name' => 'shiny star'],
-//     ['id' => 2, 'name' => 'green shell'],
-//     ['id' => 3, 'name' => 'chick']
-// ];
-
-$todos_data = json_decode(file_get_contents(('./data.json')), true);
-$todos = $todos_data['todos'];
-
-
 // Add
 if (isset($_POST['name'])) {
-    // print_r($_POST);
-    $name = $_POST['name'];
-    array_push($todos, ['id' => count($todos) + 1, 'name' => $name]);
-    
-    $todos_data['todos'] = $todos;
-    file_put_contents('data.json', json_encode($todos_data));
-    // print_r($todos);
+
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $sql = "INSERT INTO todo_list (todo_name) VALUES ('$name')";
+
+    if (empty($name)) {
+        echo 'Please enter something todo';
+
+    } else {
+        if (mysqli_query($conn, $sql)) {
+            echo 'Record added';
+            header('Location: index.php');
+
+        } else {
+            // err
+            echo 'query error:' . mysqli_error($conn);
+        };
+    }
 }
 
-$del = null;
 // Delete
 if (isset($_POST['delete'])) {
 
-    $id = $_POST['id_to_del'];
-    $del = array_slice($todos, $id - 1, 1);
+    $id = mysqli_real_escape_string($conn, $_POST['id_to_del']);;
+    $sql = "DELETE FROM todo_list WHERE todo_id = $id";
 
-    // unset($todos_data);
+    if (mysqli_query($conn, $sql)) {
+        echo 'Record deleted';
+        header('Location: index.php');
 
-    // for ($i = 0; $i < count($todos); $i++) {
-    //     if ($todos[$i] != $del[0]) {
-    //         array_push($todos, ['id' => $todos[$i]['id'], 'name' => $todos[$i]['name']]);
-    //     }
-    // }
-
-    var_dump($todos);
-    for ($i = 0; $i < count($todos); $i++) {
-        if ($todos[$i]['id'] == $id) {
-            array_splice($todos,$i,1);
-        } 
-    }
-
-    $todos_data['todos'] = $todos;
-    file_put_contents('data.json', json_encode($todos_data));
-
-    // echo '<pre>';
-    // var_dump($todos);
-    // echo '</pre>';
-
+    } else {
+        // err
+        echo 'query error:' . mysqli_error($conn);
+    };
 }
 
-$edit = null;
 // Edit
 if (isset($_POST['edit'])) {
 
-    // $id = $_POST['name_to_edit'];
-    $edit = $_POST['name_to_edit'];
-    $id = $_POST['id_to_edit'];
-    print_r($edit);
-    print_r($id);
+    $edit = mysqli_real_escape_string($conn, $_POST['name_to_edit']);
 
-    for ($i = 0; $i < count($todos); $i++) {
-        if ($todos[$i]['id'] == $id) {
-            $todos[$i]['name'] = $edit;
-            break;
+    if (empty($edit)) {
+        echo 'Please enter a the todo you want to edit';
+
+    } else {
+
+        $id = $_POST['id_to_edit'];
+        $sql = "UPDATE todo_list SET todo_name = '$edit' WHERE todo_id = $id";
+
+        if (mysqli_query($conn, $sql)) {    
+            echo 'Record edited';
+            header('Location: index.php');
+
+        } else {
+            echo 'query error:' . mysqli_error($conn);
         }
     }
-
-    $todos_data['todos'] = $todos;
-    file_put_contents('data.json', json_encode($todos_data));
 }
 ?>
 
@@ -101,19 +102,19 @@ if (isset($_POST['edit'])) {
         <!-- The Todos array -->
         <?php foreach ($todos as $todo) { ?>
             <h2>
-                <?php echo htmlspecialchars($todo['name']); ?>
-                <?php echo htmlspecialchars($todo['id']); ?>
+                <?php echo htmlspecialchars($todo['todo_name']); ?>
+                <?php echo htmlspecialchars($todo['todo_id']); ?>
 
                 <!-- Delete -->
                 <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
-                    <input type="hidden" name="id_to_del" value="<?php echo $todo['id']; ?>">
+                    <input type="hidden" name="id_to_del" value="<?php echo $todo['todo_id']; ?>">
                     <button type="submit" name="delete">Delete</button>
                 </form>
 
                 <!-- Edit -->
                 <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
-                    <input type="text" name="name_to_edit" value="<?php echo $todo['name']; ?>">
-                    <input type="hidden" name="id_to_edit" value="<?php echo $todo['id']; ?>">
+                    <input type="text" name="name_to_edit" value="<?php echo $todo['todo_name']; ?>">
+                    <input type="hidden" name="id_to_edit" value="<?php echo $todo['todo_id']; ?>">
                     <button type="submit" name="edit">Edit</button>
                 </form>
             </h2>
