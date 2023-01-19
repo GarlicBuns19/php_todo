@@ -29,27 +29,22 @@ if (isset($_POST['delete'])) {
     $id = $_POST['id_to_del'];
     $del = array_slice($todos, $id - 1, 1);
 
-    // unset($todos_data);
-
-    // for ($i = 0; $i < count($todos); $i++) {
-    //     if ($todos[$i] != $del[0]) {
-    //         array_push($todos, ['id' => $todos[$i]['id'], 'name' => $todos[$i]['name']]);
-    //     }
-    // }
-
     var_dump($todos);
     for ($i = 0; $i < count($todos); $i++) {
         if ($todos[$i]['id'] == $id) {
             array_splice($todos,$i,1);
         } 
     }
-
+    
     $todos_data['todos'] = $todos;
     file_put_contents('data.json', json_encode($todos_data));
-
-    // echo '<pre>';
-    // var_dump($todos);
-    // echo '</pre>';
+    
+    // unset($todos_data);
+    // for ($i = 0; $i < count($todos); $i++) {
+    //     if ($todos[$i] != $del[0]) {
+    //         array_push($todos, ['id' => $todos[$i]['id'], 'name' => $todos[$i]['name']]);
+    //     }
+    // }
 
 }
 
@@ -57,7 +52,6 @@ $edit = null;
 // Edit
 if (isset($_POST['edit'])) {
 
-    // $id = $_POST['name_to_edit'];
     $edit = $_POST['name_to_edit'];
     $id = $_POST['id_to_edit'];
     print_r($edit);
